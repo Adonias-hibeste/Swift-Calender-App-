@@ -1,63 +1,113 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'schedule_page.dart';
 
-class CalendarHomePage extends StatefulWidget {
+class CalendarHomePage extends ConsumerWidget {
   const CalendarHomePage({super.key});
 
   @override
-  State<CalendarHomePage> createState() => _CalendarHomePageState();
-}
-
-class _CalendarHomePageState extends State<CalendarHomePage> {
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        backgroundColor: CupertinoColors.systemBackground.withOpacity(0.8),
-        middle: Text(
-          DateFormat('MMMM yyyy').format(_focusedDay),
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: const Icon(CupertinoIcons.add),
-          onPressed: () {},
-        ),
+      backgroundColor: const Color(0xFFF8F9FE),
+      navigationBar: const CupertinoNavigationBar(
+        backgroundColor: Colors.transparent,
+        border: null,
+        middle: Text('March 2026', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+        leading: Icon(CupertinoIcons.chevron_left, color: Colors.black54),
+        trailing: Icon(CupertinoIcons.plus, color: Colors.blue),
       ),
-      child: SafeArea(
+      body: SafeArea(
         child: Column(
           children: [
-            // Month View Placeholder (Simplified for showcase)
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: CupertinoColors.systemBackground,
-              child: Column(
-                children: [
-                  _buildWeekDays(),
-                  const SizedBox(height: 10),
-                  _buildCalendarGrid(),
-                ],
-              ),
-            ),
-            
-            const Divider(height: 1, color: CupertinoColors.systemGrey5),
-            
-            // Events List
-            Expanded(
-              child: Container(
-                color: CupertinoColors.extraLightBackgroundGray,
-                child: ListView(
-                  children: [
-                    _buildEventItem("10:00 AM", "Product Sync", "AI Workspace", CupertinoColors.systemBlue),
-                    _buildEventItem("1:30 PM", "Client Review", "Zoom Meeting", CupertinoColors.systemPurple),
-                    _buildEventItem("4:00 PM", "Gym Session", "Fitness First", CupertinoColors.systemOrange),
-                  ],
+            _buildTodayHighlight(),
+            const SizedBox(height: 24),
+            _buildCalendarGrid(),
+            const SizedBox(height: 32),
+            _buildUpcomingSection(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTodayHighlight() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10))],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Today', style: TextStyle(color: Colors.black38, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Product review', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(20)),
+                  child: const Text('3 events', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
-              ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text('2:30 PM • Studio Room', style: TextStyle(color: Colors.black45)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCalendarGrid() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(32)),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                  .map((d) => Text(d, style: const TextStyle(color: Colors.black38, fontSize: 12, fontWeight: FontWeight.bold)))
+                  .toList(),
+            ),
+            const SizedBox(height: 20),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, mainAxisSpacing: 10, crossAxisSpacing: 10),
+              itemCount: 35,
+              itemBuilder: (context, index) {
+                final day = index - 3;
+                if (day < 1) return const SizedBox();
+                final isSelected = day == 29;
+                return Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.blue : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.black.withOpacity(0.05)),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('$day', style: TextStyle(color: isSelected ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
+                      if (day % 3 == 0) ...[
+                        const SizedBox(height: 4),
+                        Container(width: 4, height: 4, decoration: BoxDecoration(color: isSelected ? Colors.white : Colors.blue, shape: BoxShape.circle)),
+                      ],
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -65,112 +115,48 @@ class _CalendarHomePageState extends State<CalendarHomePage> {
     );
   }
 
-  Widget _buildWeekDays() {
-    final days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: days.map((day) => Text(
-        day,
-        style: const TextStyle(
-          color: CupertinoColors.systemGrey,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      )).toList(),
-    );
-  }
-
-  Widget _buildCalendarGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-      ),
-      itemCount: 31,
-      itemBuilder: (context, index) {
-        final day = index + 1;
-        final isSelected = day == DateTime.now().day;
-        return Center(
-          child: Container(
-            height: 35,
-            width: 35,
-            decoration: BoxDecoration(
-              color: isSelected ? CupertinoColors.systemBlue : Colors.transparent,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '$day',
-                style: TextStyle(
-                  color: isSelected ? CupertinoColors.white : CupertinoColors.label,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEventItem(String time, String title, String location, Color color) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CupertinoColors.systemBackground,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
+  Widget _buildUpcomingSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
         children: [
-          Container(
-            width: 4,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                time,
-                style: const TextStyle(
-                  color: CupertinoColors.systemGrey,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                location,
-                style: const TextStyle(
-                  color: CupertinoColors.systemGrey,
-                  fontSize: 13,
-                ),
+              const Text('Upcoming', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                child: const Text('View all', style: TextStyle(fontSize: 14)),
+                onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => const SchedulePage())),
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          _buildUpcomingItem('Design sync', 'Tue • 10:00 AM', Colors.blue),
+          const SizedBox(height: 12),
+          _buildUpcomingItem('Client lunch', 'Thu • 12:30 PM', Colors.orange),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpcomingItem(String title, String time, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: Colors.blue.withOpacity(0.05), borderRadius: BorderRadius.circular(24)),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(time, style: const TextStyle(color: Colors.black45, fontSize: 12)),
+              ],
+            ),
+          ),
+          Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         ],
       ),
     );
