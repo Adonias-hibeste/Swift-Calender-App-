@@ -6,6 +6,14 @@ Swift Calendar is a high-fidelity iOS-inspired calendar application built with F
 
 ![Calendar Header](https://raw.githubusercontent.com/Adonias-hibeste/Swift-Calender-App-/main/preview.png)
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="screenshots/home.png" width="30%" alt="Monthly Overview" />
+  <img src="screenshots/schedule.png" width="30%" alt="Daily Schedule" />
+  <img src="screenshots/detail.png" width="30%" alt="Event Details" />
+</p>
+
 ## ✨ Features
 
 - 📅 **Intuitive Month View** — A clean, grid-based month view with smooth transitions and day selection.
